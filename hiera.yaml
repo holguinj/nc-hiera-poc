@@ -1,0 +1,13 @@
+---
+version: 5
+defaults:
+  datadir: data
+  data_hash: yaml_data
+
+hierarchy:
+  - name: "per-node"
+    path: "nodes/%{trusted.certname}.yaml"
+  - name: "classifier data"
+    data_hash: classifier_data
+    options:
+      fuck: "yes"
