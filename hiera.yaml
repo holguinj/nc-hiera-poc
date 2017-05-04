@@ -1,7 +1,7 @@
 ---
 version: 5
 defaults:
-  datadir: data
+  datadir: "/etc/puppetlabs/code/environments/%{environment}/hieradata"
   data_hash: yaml_data
 
 hierarchy:
@@ -11,3 +11,6 @@ hierarchy:
     data_hash: classifier_data
     options:
       fuck: "yes"
+  - name: "other hierarchy levels"
+    paths:
+      - "common.yaml"
