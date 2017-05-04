@@ -22,8 +22,10 @@ scp site.pp $REMOTE:/etc/puppetlabs/code/environments/production/manifests/site.
 scp hiera.yaml $REMOTE:/etc/puppetlabs/puppet/hiera.yaml
 
 # Restart pe-puppetserver
+echo "Restarting pe-puppetserver..."
 ssh $REMOTE "systemctl restart pe-puppetserver"
 #ssh $REMOTE "kill -HUP `systemctl status pe-puppetserver | grep 'Main PID' | awk '{print $3}'`"
 
 # Run puppet
+echo "Running puppet..."
 ssh $REMOTE "puppet agent -t"
