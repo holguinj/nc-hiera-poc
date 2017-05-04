@@ -1,6 +1,10 @@
 require 'puppet/network/http_pool'
 require 'json'
 
+class HieraNodeAdapter < Puppet::Pops::Adaptable::Adapter
+  attr_accessor :hiera_data
+end
+
 class Puppet::Node::Classifier < Puppet::Indirector::Code
   AgentSpecifiedEnvironment = "agent-specified"
   ClassificationConflict = 'classification-conflict'
@@ -82,6 +86,13 @@ class Puppet::Node::Classifier < Puppet::Indirector::Code
 
   private
 
+  def adapt_node_data(hiera_data, node)
+    # Hierafy the given Node object
+    hiera_data ||= {}
+    HieraNodeAdapter.adapt(node).hiera_data = hiera_data
+    return node
+  end
+
   def new_connection(service)
     Puppet::Network::HttpPool.http_instance(service[:server], service[:port])
   end
@@ -125,9 +136,8 @@ class Puppet::Node::Classifier < Puppet::Indirector::Code
     node.environment = requested_environment if is_agent_specified
     node.fact_merge
 
-    dummy_hiera_data(node_facts, {"thing" => "present and accounted for", "this_is" => "working"})
-
-    return node
+    hiera_data = dummy_hiera_data(node_facts, {"thing" => "present and accounted for", "this_is" => "working"})
+    return adapt_node_data(hiera_data, node)
   end
 
   def config
@@ -156,14 +166,7 @@ class Puppet::Node::Classifier < Puppet::Indirector::Code
 
   def dummy_hiera_data(node_facts, hiera_data)
     node_name = node_facts['fact']['fqdn'] || 'unknown_node'
-    path = '/tmp/' + node_name + '.yaml'
-    File.open(path, 'w') { |file| file.write(hiera_data.to_yaml) }
-
-    # Preemptive debugging
-    if node_name == 'unknown_node'
-      File.open('/tmp/node_data.yaml', 'w') { |file| file.write(node_facts.to_yaml) }
-    end
-
+    return {"message" => "We got some data for #{node_name}!"}.merge(hiera_data)
   end
 
 end

@@ -12,22 +12,14 @@ Puppet::Functions.create_function(:classifier_data) do
   end
 
   def classifier_data(options, context)
-    path = '/tmp/' + context.interpolate('%{fqdn}') + '.yaml' # this is the only substantial change -JHH
-    context.cached_file_data(path) do |content|
-      begin
-        data = YAML.load(content, path)
-        # This is where we might want to delete the file at 'path'
-        if data.is_a?(Hash)
-          Puppet::Pops::Lookup::HieraConfig.symkeys_to_string(data)
-        else
-          Puppet.warning("#{path}: file does not contain a valid yaml hash")
-          {}
-        end
-      rescue YAML::SyntaxError => ex
-        # Psych errors includes the absolute path to the file, so no need to add that
-        # to the message
-        raise Puppet::DataBinding::LookupError, "Unable to parse #{ex.message}"
-      end
-    end
+    node = context
+             .instance_variable_get(:@lookup_invocation)
+             .instance_variable_get(:@scope)
+             .instance_variable_get(:@compiler)
+             .instance_variable_get(:@node)
+    hiera_data = HieraNodeAdapter.get(node).hiera_data # will be nil if the node is not adapted
+    hiera_data ||= {"message" => "hiera_data was nil"}
+    context.cache_all(hiera_data)
+    hiera_data
   end
 end
