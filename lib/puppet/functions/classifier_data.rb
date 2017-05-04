@@ -12,11 +12,7 @@ Puppet::Functions.create_function(:classifier_data) do
   end
 
   def classifier_data(options, context)
-    node = context
-             .instance_variable_get(:@lookup_invocation)
-             .instance_variable_get(:@scope)
-             .instance_variable_get(:@compiler)
-             .instance_variable_get(:@node)
+    node = closure_scope.compiler.node
     hiera_data = HieraNodeAdapter.get(node).hiera_data # will be nil if the node is not adapted
     hiera_data ||= {"message" => "hiera_data was nil"}
     context.cache_all(hiera_data)
