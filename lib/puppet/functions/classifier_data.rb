@@ -11,15 +11,17 @@ Puppet::Functions.create_function(:classifier_data) do
     param 'Puppet::LookupContext', :context
   end
 
-  def call_classifier_terminus()
-    #todo
-    {"message" => "hiera_data was nil"}
+  def hiera_data_from_classifier(node)
+    name = node.name
+    environment = node.environment_name
+    node = Puppet::Node.indirection.find(name, :environment => environment)
+    return HieraNodeAdapter.get(node).hiera_data
   end
 
   def classifier_data(options, context)
     node = closure_scope.compiler.node
     hiera_data = HieraNodeAdapter.get(node).hiera_data # will be nil if the node is not adapted
-    hiera_data ||= call_classifier_terminus()
+    hiera_data ||= hiera_data_from_classifier(node)
     context.cache_all(hiera_data)
     hiera_data
   end
